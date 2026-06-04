@@ -11,7 +11,7 @@ st.markdown("""
     <style>
     #MainMenu {visibility: hidden;}
     footer {visibility: hidden;}
-    header {visibility: hidden;}
+    
     .block-container { padding-top: 2rem; padding-bottom: 2rem; }
     div[data-testid="metric-container"] {
         background-color: #f8f9fa; border: 1px solid #e0e0e0;
