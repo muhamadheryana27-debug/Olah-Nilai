@@ -119,7 +119,7 @@ if not st.session_state["logged_in"]:
                         try:
                             supabase.auth.reset_password_for_email(
                                 email_reset, 
-                                options={"redirect_to": "https://olah-nilai-mshaahezenmr.streamlit.app"}
+                                options={"redirect_to": "https://olah-nilai-mshaahezenmr.streamlit.app/?type=recovery"}
                             )
                             st.success("✅ Tautan reset password telah dikirim ke email Anda!")
                         except Exception as e:
