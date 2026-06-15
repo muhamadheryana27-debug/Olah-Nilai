@@ -47,6 +47,46 @@ if "user_role" not in st.session_state:
 if "user_credits" not in st.session_state:
     st.session_state["user_credits"] = 0
 
+# =========================================================================
+# HALAMAN KHUSUS: UPDATE PASSWORD (DARI LINK EMAIL)
+# =========================================================================
+query_params = st.query_params
+if "type" in query_params and query_params["type"] == "recovery":
+    st.session_state["mode_reset_password"] = True
+
+if st.session_state.get("mode_reset_password", False):
+    st.markdown("<h1 style='text-align: center;'>🔄 Atur Ulang Password</h1>", unsafe_allow_html=True)
+    st.divider()
+    col_l, col_center, col_r = st.columns([1, 1.5, 1])
+    with col_center:
+        st.markdown("<div class='login-box'>", unsafe_allow_html=True)
+        st.write("Silakan masukkan password baru Anda di bawah ini.")
+        
+        password_baru = st.text_input("Password Baru:", type="password", key="new_password_input")
+        konfirmasi_password = st.text_input("Konfirmasi Password Baru:", type="password", key="confirm_new_password_input")
+        
+        btn_update_pass = st.button("Simpan Password Baru 💾", type="primary", use_container_width=True)
+        
+        if btn_update_pass:
+            if len(password_baru) < 6:
+                st.error("❌ Password harus minimal 6 karakter!")
+            elif password_baru != konfirmasi_password:
+                st.error("❌ Konfirmasi password tidak cocok!")
+            else:
+                try:
+                    supabase.auth.update_user({"password": password_baru})
+                    st.success("✅ Password berhasil diperbarui! Silakan klik 'Kembali ke Login'.")
+                    st.session_state["mode_reset_password"] = False
+                    st.query_params.clear()
+                except Exception as e:
+                    st.error(f"Gagal memperbarui password: {e}")
+                    
+        if st.button("Kembali ke Login", use_container_width=True):
+            st.session_state["mode_reset_password"] = False
+            st.query_params.clear()
+            st.rerun()
+        st.markdown("</div>", unsafe_allow_html=True)
+    st.stop() # Menghentikan kode di bawah agar tidak tumpah tindih dengan form login biasa
 
 # =========================================================================
 # HALAMAN 1: FORM LOGIN & REGISTRASI
@@ -65,6 +105,25 @@ if not st.session_state["logged_in"]:
             input_email = st.text_input("Email:", key="login_email")
             input_pass = st.text_input("Password:", type="password", key="login_pass")
             btn_login = st.button("Masuk Sekarang 🚀", use_container_width=True, type="primary")
+            
+            # --- FITUR LUPA PASSWORD ---
+            st.markdown("<br>", unsafe_allow_html=True)
+            with st.expander("🔑 Lupa Password?"):
+                st.caption("Masukkan email Anda di bawah ini untuk menerima tautan reset password.")
+                email_reset = st.text_input("Email Terdaftar:", key="email_reset")
+                btn_reset = st.button("Kirim Link Reset 📩", use_container_width=True)
+                if btn_reset:
+                    if email_reset.strip() == "":
+                        st.warning("Silakan isi email terlebih dahulu!")
+                    else:
+                        try:
+                            supabase.auth.reset_password_for_email(
+                                email_reset, 
+                                options={"redirect_to": "https://olah-nilai-mshaahezenmr.streamlit.app"}
+                            )
+                            st.success("✅ Tautan reset password telah dikirim ke email Anda!")
+                        except Exception as e:
+                            st.error(f"Gagal mengirim email reset: {e}")
             
             if btn_login:
                 try:
